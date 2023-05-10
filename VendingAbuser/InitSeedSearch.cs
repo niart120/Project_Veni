@@ -72,9 +72,6 @@ namespace VendingAbuser
 
             UInt32 mac_gxstat_frame = (cfg.MAC[0]) ^ (cfg.MAC[1] << 8) ^ (cfg.MAC[2] << 16) ^ (cfg.MAC[3] << 24) ^ gxstat ^ frame;
 
-
-            //Span<T> を使ったメッセージ作成
-
             for (int i = 0; i < nazo.Length; i++)
             {
                 message[i] = nazo[i];
@@ -82,6 +79,7 @@ namespace VendingAbuser
             message[5] = (vcount << 16);
             message[6] = lowmac;
             message[7] = mac_gxstat_frame;
+            for (int i = 8; i < message.Length; i++) message[i] = 0;
             this.baseMessage = message;
         }
 
@@ -89,7 +87,7 @@ namespace VendingAbuser
         {
             UInt32[] msg = new UInt32[13];
             this.baseMessage.AsSpan().CopyTo(msg);
-            msg[5] ^= timer0;
+            msg[5] = timer0 ^ (msg[5] & 0xFFFF0000U);
             msg[8] = nnddmmyy;
             msg[9] = ssmihh;
             msg[12] = keyinput;
@@ -105,7 +103,7 @@ namespace VendingAbuser
         {
             //original author:@sub_yatsuna[https://gist.github.com/yatsuna827/628138975c86123bdfdf9ba98001c613]
             uint[] W = new uint[80];
-            for(int i=0; i < msg.Length; i++)
+            for (int i=0; i < msg.Length; i++)
             {
                 W[i] = ChangeEndian(msg[i]);
             }
@@ -181,15 +179,22 @@ namespace VendingAbuser
         const UInt64 mul = 0x5d588b656c078965UL;
         const UInt64 add = 0x269ec3UL;
 
-        public static IEnumerable<Result> BruteForceSearch(Setting cfg, IEnumerable<(UInt32, UInt32, UInt32, UInt32)> messageParams)
-        {
-            var parameters = messageParams.ToArray();
-            var length = parameters.Length;
-            var isg = new InitSeedGenerator(cfg);
-            var vms = new VendingMachineSearcher(cfg);
+        private UInt64 initmul;
+        private UInt64 initadd;
 
-            const UInt64 mul = 0x5d588b656c078965UL;
-            const UInt64 add = 0x269ec3UL;
+        private int chunksize;
+
+
+        private InitSeedGenerator isg;
+        private VendingMachineSearcher vms;
+        private SeedGenerator sg;
+        private Setting cfg;
+
+        public InitSeedSearch(Setting cfg, int chunksize)
+        {
+            this.chunksize = chunksize;
+
+            
             UInt64 initmul = 1;
             UInt64 initadd = 0;
             UInt64 tmp = 1;
@@ -200,16 +205,26 @@ namespace VendingAbuser
                 tmp *= mul;
             }
             initadd *= add;
+            this.initmul = initmul;
+            this.initadd = initadd;
 
-            var initseeds = new UInt64[length];
-            var seeds = new UInt64[length];
-            var bmsg = isg.GetBaseMessage();
+            isg = new(cfg);
+            vms = new(cfg);
+            sg = new(initmul, initadd);
+            this.cfg = cfg;
+        }
 
-            SeedGenerator sg = new SeedGenerator(initmul, initadd);
+        public IEnumerable<Result> BruteForceSearch(IEnumerable<(UInt32, UInt32, UInt32, UInt32)> messageParams)
+        {
+            UInt64[] initseeds = new UInt64[chunksize];
+            UInt64[] seeds = new UInt64[chunksize];
+            UInt32[]? messages = cfg.useGPU ? new UInt32[4 * chunksize] : null;
+            var parameters = messageParams.ToArray();
+            var length = parameters.Length;
 
-            if (cfg.useGPU)
+            UInt32[] bmsg = isg.GetBaseMessage();
+            if (cfg.useGPU&&messages!=null)
             {
-                UInt32[] messages = new UInt32[4 * length];
                 Parallel.For(0, length, i =>
                 {
                     (var timer0, var datecode, var timecode, var keycode) = parameters[i];
@@ -263,14 +278,14 @@ namespace VendingAbuser
             for (; i < begin; ++i)
             {
                 checkcode <<= 5;
-                checkcode ^= (state >> 32) >> 27;
+                checkcode ^= (state >> 32) >> 27;//same as checkcode ^= rand * 2^32 / 32 {rand:state>>32}
                 state = state * mul + add;
             }
             for (; i < end; ++i)
             {
                 checkcode <<= 5;
-                checkcode ^= (state >> 32) >> 27;
-                if((checkcode&mask)==0UL){
+                checkcode ^= (state >> 32) >> 27;//same as checkcode ^= rand * 2^32 / 32 {rand:state>>32}
+                if ((checkcode&mask)==0UL){//check num of leadings zero in binary (5*n)
                     result.Add(i);
                 };
                 state = state * mul + add;
