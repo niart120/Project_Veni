@@ -17,7 +17,7 @@ namespace VendingAbuser
 
         private IEnumerable<T> WrapForGUI<T>(IEnumerable<T> source, CancellationToken ct)
         {
-            foreach(var item in source)
+            foreach (var item in source)
             {
                 progressBar1.BeginInvoke(() =>
                 {
@@ -49,17 +49,18 @@ namespace VendingAbuser
             var chunksize = 2_500_000;
             var paramlength = Misc.GetParamsLength(cfg);
 
-            this.progressBar1.Maximum = (int)((paramlength)/chunksize) ;
+            this.progressBar1.Maximum = (int)((paramlength) / chunksize);
             this.progressBar1.Value = 0;
 
             var chunk = WrapForGUI(Misc.GetParams(cfg).Chunk(chunksize), cts.Token);
 
             await Task.Run(() =>
             {
+                var iss = new InitSeedSearch(cfg, chunksize);
                 var lst = new List<Result>();
                 foreach (var messageParams in chunk)
                 {
-                    var tmp = InitSeedSearch.BruteForceSearch(cfg, messageParams);
+                    var tmp = iss.BruteForceSearch(messageParams);
                     lst.AddRange(tmp);
                 }
                 var results = lst.Order().ToArray();
@@ -118,8 +119,8 @@ namespace VendingAbuser
             using (var writer = new StreamWriter(resultFile, false, Encoding.UTF8))
             {
                 //seed_, date_, time_, timer0_, targetadv_, keyinput_
-                writer.WriteLine("初期seed, 日付, 時刻, timer0, 消費数"+ (useKeyinput? ", キー入力":""));
-                foreach(var result in results)
+                writer.WriteLine("初期seed, 日付, 時刻, timer0, 消費数" + (useKeyinput ? ", キー入力" : ""));
+                foreach (var result in results)
                 {
                     writer.WriteLine(result);
                 }
