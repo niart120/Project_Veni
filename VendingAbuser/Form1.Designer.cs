@@ -28,8 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             groupBox1 = new GroupBox();
             comboBox2 = new ComboBox();
             groupBox2 = new GroupBox();
@@ -63,9 +64,9 @@
             Column5 = new DataGridViewTextBoxColumn();
             Column6 = new DataGridViewTextBoxColumn();
             groupBox7 = new GroupBox();
+            label3 = new Label();
             dateTimePicker2 = new DateTimePicker();
             dateTimePicker1 = new DateTimePicker();
-            label3 = new Label();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -400,8 +401,8 @@
             // 
             // Column4
             // 
-            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleRight;
-            Column4.DefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleRight;
+            Column4.DefaultCellStyle = dataGridViewCellStyle1;
             Column4.HeaderText = "Timer0";
             Column4.MinimumWidth = 10;
             Column4.Name = "Column4";
@@ -410,8 +411,8 @@
             // 
             // Column5
             // 
-            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleRight;
-            Column5.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleRight;
+            Column5.DefaultCellStyle = dataGridViewCellStyle2;
             Column5.HeaderText = "Advance";
             Column5.MinimumWidth = 10;
             Column5.Name = "Column5";
@@ -438,6 +439,16 @@
             groupBox7.TabStop = false;
             groupBox7.Text = "SearchDateRange";
             // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.BackColor = Color.Transparent;
+            label3.Location = new Point(258, 49);
+            label3.Name = "label3";
+            label3.Size = new Size(38, 32);
+            label3.TabIndex = 2;
+            label3.Text = "～";
+            // 
             // dateTimePicker2
             // 
             dateTimePicker2.Location = new Point(296, 46);
@@ -456,16 +467,6 @@
             dateTimePicker1.Size = new Size(240, 39);
             dateTimePicker1.TabIndex = 0;
             // 
-            // label3
-            // 
-            label3.AutoSize = true;
-            label3.BackColor = Color.Transparent;
-            label3.Location = new Point(258, 49);
-            label3.Name = "label3";
-            label3.Size = new Size(38, 32);
-            label3.TabIndex = 2;
-            label3.Text = "～";
-            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
@@ -483,6 +484,7 @@
             Controls.Add(groupBox3);
             Controls.Add(groupBox4);
             Controls.Add(groupBox1);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form1";
             Text = "VendingAbuser";
             Load += Form1_Load;
