@@ -94,10 +94,16 @@ namespace VendingAbuser
             return result;
         }
 
-        public static UInt32[] GenerateKeycodeList(bool[] usekeys)
+        public static UInt32[] GenerateKeycodeList(Setting cfg)
         {
+            var result = new List<UInt32>();
+            if (cfg.useKeyinput == false)
+            {
+                result.Add(0x2fff);
+                return result.ToArray();
+            }
             var keys = 0U;
-            foreach (var key in usekeys)
+            foreach (var key in cfg.usekeys)
             {
                 keys <<= 1;
                 keys ^= Convert.ToUInt32(key);
@@ -106,7 +112,7 @@ namespace VendingAbuser
             const UInt32 LeftRight = 0x030U;
             const UInt32 UpDown = 0x0C0U;
             const UInt32 StSlLR = 0x30CU;
-            var result = new List<UInt32>();
+            
             for (UInt32 i = 0U; i < (1 << 12); ++i)
             {
                 if ((i & keys) == i)
@@ -238,7 +244,7 @@ namespace VendingAbuser
         public static long GetParamsLength(Setting cfg)
         {
             var t0range = (cfg.rom == ROM.B1 || cfg.rom == ROM.W1) ? 3L : 7L;
-            var kirange = (long)GenerateKeycodeList(cfg.usekeys).Length;
+            var kirange = (long)GenerateKeycodeList(cfg).Length;
             var dcrange = (long)GenerateDatecodeList(cfg.beginDate, cfg.endDate).Length;
             var tcrange = (long)GenerateTimecodeList().Length;
             return t0range * kirange * dcrange * tcrange;
@@ -247,7 +253,7 @@ namespace VendingAbuser
 
         public static IEnumerable<(uint, uint, uint, uint)> GetParams(Setting cfg, UInt32[] datecodeList, UInt32[] timecodeList)
         {
-            UInt32[] keycodeList = GenerateKeycodeList(cfg.usekeys);
+            UInt32[] keycodeList = GenerateKeycodeList(cfg);
             //timer0の範囲
             var t0range = (cfg.rom == ROM.B1 || cfg.rom == ROM.W1) ? 3L : 7L;
             var t = cfg.rom.BaseTimer0() + t0range;
