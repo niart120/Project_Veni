@@ -73,7 +73,6 @@ CUDASearch::SeedGenerator::SeedGenerator(UInt64 initmul, UInt64 initadd)
 }
 
 
-
 CUDASearch::SeedGenerator::~SeedGenerator()
 {
 	this->!SeedGenerator();
